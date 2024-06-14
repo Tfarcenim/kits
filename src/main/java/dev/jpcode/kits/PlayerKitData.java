@@ -3,24 +3,23 @@ package dev.jpcode.kits;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 
 public class PlayerKitData extends PlayerData {
 
     private Map<String, Long> kitUsedTimes;
     private boolean hasReceivedStarterKit;
 
-    public PlayerKitData(ServerPlayerEntity player, File saveFile) {
+    public PlayerKitData(ServerPlayer player, File saveFile) {
         super(player, saveFile);
         kitUsedTimes = new HashMap<>();
     }
 
     public void useKit(String kitName) {
-        kitUsedTimes.put(kitName, Util.getEpochTimeMs());
-        markDirty();
+        kitUsedTimes.put(kitName, Util.getEpochMillis());
+        setDirty();
         save();
     }
 
@@ -33,9 +32,9 @@ public class PlayerKitData extends PlayerData {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public CompoundTag save(CompoundTag nbt) {
 
-        NbtCompound kitUsedTimesNbt = new NbtCompound();
+        CompoundTag kitUsedTimesNbt = new CompoundTag();
         kitUsedTimes.forEach(kitUsedTimesNbt::putLong);
 
         nbt.put("kitUsedTimes", kitUsedTimesNbt);
@@ -46,10 +45,10 @@ public class PlayerKitData extends PlayerData {
     }
 
     @Override
-    public void fromNbt(NbtCompound nbtCompound) {
-        NbtCompound dataTag = nbtCompound.getCompound("data");
-        NbtCompound kitUsedTimesNbt = dataTag.getCompound("kitUsedTimes");
-        for (String key : kitUsedTimesNbt.getKeys()) {
+    public void fromNbt(CompoundTag nbtCompound) {
+        CompoundTag dataTag = nbtCompound.getCompound("data");
+        CompoundTag kitUsedTimesNbt = dataTag.getCompound("kitUsedTimes");
+        for (String key : kitUsedTimesNbt.getAllKeys()) {
             this.kitUsedTimes.put(key, kitUsedTimesNbt.getLong(key));
         }
         this.hasReceivedStarterKit = dataTag.getBoolean("hasReceivedStarterKit");
@@ -61,17 +60,17 @@ public class PlayerKitData extends PlayerData {
 
     public void setHasReceivedStarterKit(boolean hasReceivedStarterKit) {
         this.hasReceivedStarterKit = hasReceivedStarterKit;
-        this.markDirty();
+        this.setDirty();
         this.save();
     }
 
     public void resetKitCooldown(String kitName) {
         this.kitUsedTimes.remove(kitName);
-        this.markDirty();
+        this.setDirty();
     }
 
     public void resetAllKits() {
         this.kitUsedTimes.clear();
-        this.markDirty();
+        this.setDirty();
     }
 }
