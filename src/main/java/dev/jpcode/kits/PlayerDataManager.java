@@ -2,11 +2,17 @@ package dev.jpcode.kits;
 
 import java.util.LinkedHashMap;
 import java.util.UUID;
-import net.minecraft.network.Connection;
+
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
-import dev.jpcode.kits.events.PlayerConnectCallback;
-import dev.jpcode.kits.events.PlayerLeaveCallback;
+
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class PlayerDataManager {
 
@@ -19,12 +25,13 @@ public class PlayerDataManager {
     }
 
     static {
-        PlayerConnectCallback.EVENT_HEAD.register(PlayerDataManager::onPlayerConnect);
-        PlayerConnectCallback.EVENT_RETURN.register(PlayerDataManager::onPlayerConnectTail);
-        PlayerLeaveCallback.EVENT.register(PlayerDataManager::onPlayerLeave);
+        ServerPlayConnectionEvents.JOIN.register(PlayerDataManager::onPlayerConnect);
+        ServerPlayConnectionEvents.DISCONNECT.register(PlayerDataManager::onPlayerLeave);
+        ServerPlayerEvents.COPY_FROM.register(PlayerDataManager::handlePlayerDataRespawnSync);
     }
 
-    public static void onPlayerConnect(Connection connection, ServerPlayer player) {
+    public static void onPlayerConnect(ServerGamePacketListenerImpl handler, PacketSender sender, MinecraftServer server) {
+        ServerPlayer player = handler.player;
         PlayerKitData playerData = instance.addPlayer(player);
         ((ServerPlayerEntityAccess) player).kits$setPlayerData(playerData);
 
@@ -37,10 +44,6 @@ public class PlayerDataManager {
 //
 //        }
 
-    }
-
-    private static void onPlayerConnectTail(Connection connection, ServerPlayer player) {
-        PlayerKitData playerData = ((ServerPlayerEntityAccess) player).kits$getPlayerData();
         // Detect if player has gotten starter kit
         if (!playerData.hasReceivedStarterKit()) {
             Kit starterKit = KitsMod.getStarterKit();
@@ -55,17 +58,14 @@ public class PlayerDataManager {
         }
     }
 
-    private static void onPlayerFirstJoin(Connection connection, ServerPlayer player) {
-
-    }
-
-    public static void onPlayerLeave(ServerPlayer player) {
+    public static void onPlayerLeave(ServerGamePacketListenerImpl handler, MinecraftServer server) {
         // Auto-saving should be handled by WorldSaveHandlerMixin. (PlayerData saves when MC server saves players)
+        ServerPlayer player = handler.player;
         instance.unloadPlayerData(player);
         ((ServerPlayerEntityAccess) player).kits$getPlayerData().save();
     }
 
-    public static void handlePlayerDataRespawnSync(ServerPlayer oldPlayerEntity, ServerPlayer newPlayerEntity) {
+    public static void handlePlayerDataRespawnSync(ServerPlayer oldPlayerEntity, ServerPlayer newPlayerEntity,boolean alive) {
         var oldPlayerAccess = ((ServerPlayerEntityAccess) oldPlayerEntity);
         var newPlayerAccess = ((ServerPlayerEntityAccess) newPlayerEntity);
 
