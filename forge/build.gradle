@@ -79,8 +79,10 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":common")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
+    compileOnly 'net.luckperms:api:5.4'
 
-   // implementation  "me.lucko:forge-permissions-api:${project.permissions_api_version}"
+    implementation 'net.luckperms:api:5.4'
+    // implementation  "me.lucko:forge-permissions-api:${project.permissions_api_version}"
     //include "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
 }
 

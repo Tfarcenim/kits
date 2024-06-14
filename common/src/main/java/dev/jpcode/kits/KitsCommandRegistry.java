@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 
 import dev.jpcode.kits.platform.Services;
 
-import eu.pb4.sgui.api.gui.SimpleGuiBuilder;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -17,6 +16,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.CommandNode;
+
+import dev.jpcode.kits.sgui.api.gui.SimpleGuiBuilder;
+
 import net.minecraft.Util;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandRuntimeException;

@@ -2,6 +2,9 @@ package dev.jpcode.kits.command;
 
 import java.io.IOException;
 import java.util.List;
+
+import dev.jpcode.kits.Kits;
+
 import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ClickEvent;
@@ -13,7 +16,6 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.jpcode.kits.Kit;
 
 import static dev.jpcode.kits.KitsCommandRegistry.saveKit;
-import static dev.jpcode.kits.KitsFabric.KIT_MAP;
 
 public final class KitCommandsManagerCommand {
     private KitCommandsManagerCommand() {}
@@ -85,9 +87,9 @@ public final class KitCommandsManagerCommand {
     }
 
     private static Kit getKit(String kitName) {
-        if (!KIT_MAP.containsKey(kitName)) {
+        if (!Kits.KIT_MAP.containsKey(kitName)) {
             throw new CommandRuntimeException(Component.literal(String.format("Kit '%s' does not exist", kitName)));
         }
-        return KIT_MAP.get(kitName);
+        return Kits.KIT_MAP.get(kitName);
     }
 }

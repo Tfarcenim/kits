@@ -10,7 +10,7 @@ subprojects {
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
-    java.withJavadocJar()
+  //  java.withJavadocJar()
 
     jar {
         from(rootProject.file("LICENSE")) {
@@ -48,7 +48,9 @@ subprojects {
             name = 'BlameJared Maven (JEI / CraftTweaker / Bookshelf)'
             url = 'https://maven.blamejared.com'
         }
-
+        maven {
+            url "https://cursemaven.com"
+        }
 
         maven { name 'Fabric'; url 'https://maven.fabricmc.net/' }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
