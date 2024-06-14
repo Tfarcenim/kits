@@ -2,17 +2,14 @@ package dev.jpcode.kits.command;
 
 import java.io.IOException;
 import java.util.List;
-
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-
-import net.minecraft.command.CommandException;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-
 import dev.jpcode.kits.Kit;
 
 import static dev.jpcode.kits.KitsCommandRegistry.saveKit;
@@ -21,18 +18,18 @@ import static dev.jpcode.kits.KitsMod.KIT_MAP;
 public final class KitCommandsManagerCommand {
     private KitCommandsManagerCommand() {}
 
-    public static int listCommandsForKit(CommandContext<ServerCommandSource> context) {
+    public static int listCommandsForKit(CommandContext<CommandSourceStack> context) {
         String kitName = StringArgumentType.getString(context, "kit_name");
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
         Kit kit = getKit(kitName);
 
-        MutableText message = Text.literal(String.format("Kit '%s'", kitName));
+        MutableComponent message = Component.literal(String.format("Kit '%s'", kitName));
         if (!kit.commands().isEmpty()) {
             message.append(" (click a command to remove)");
             List<String> commands = kit.commands();
             for (int i = 1; i <= commands.size(); i++) {
                 String command = commands.get(i - 1);
-                message.append(Text.literal(String.format("\n#%d: %s", i, command))
+                message.append(Component.literal(String.format("\n#%d: %s", i, command))
                     .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
                         String.format("/kit commands %s remove %s", kitName, command)))));
             }
@@ -40,13 +37,13 @@ public final class KitCommandsManagerCommand {
             message.append("\nDoes not have any commands");
         }
 
-        source.sendFeedback(() -> message, false);
+        source.sendSuccess(() -> message, false);
         return 1;
     }
 
-    public static int addCommandToKit(CommandContext<ServerCommandSource> context) {
+    public static int addCommandToKit(CommandContext<CommandSourceStack> context) {
         String kitName = StringArgumentType.getString(context, "kit_name");
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
         Kit kit = getKit(kitName);
 
         String command = StringArgumentType.getString(context, "command")
@@ -54,42 +51,42 @@ public final class KitCommandsManagerCommand {
 
         try {
             boolean added = kit.addCommand(command);
-            if (!added) throw new CommandException(Text.literal("Command already exists in this kit."));
+            if (!added) throw new CommandRuntimeException(Component.literal("Command already exists in this kit."));
             saveKit(kitName, kit);
-            source.sendFeedback(() ->
-                    Text.literal(String.format("Added command \"%s\" to kit '%s'", command, kitName)),
+            source.sendSuccess(() ->
+                    Component.literal(String.format("Added command \"%s\" to kit '%s'", command, kitName)),
                 true);
         } catch (IOException e) {
-            throw new CommandException(Text.literal("Failed to save kit."));
+            throw new CommandRuntimeException(Component.literal("Failed to save kit."));
         }
         return 1;
     }
 
-    public static int removeCommandFromKit(CommandContext<ServerCommandSource> context) {
+    public static int removeCommandFromKit(CommandContext<CommandSourceStack> context) {
         String kitName = StringArgumentType.getString(context, "kit_name");
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
         Kit kit = getKit(kitName);
 
         String command = StringArgumentType.getString(context, "command");
 
         try {
             boolean existed = kit.removeCommand(command);
-            if (!existed) throw new CommandException(Text.literal("That command is not in this kit."));
+            if (!existed) throw new CommandRuntimeException(Component.literal("That command is not in this kit."));
             saveKit(kitName, kit);
-            source.sendFeedback(() ->
-                    Text.literal(String.format("Removed command \"%s\" from kit '%s'. (click to re-add)", command, kitName))
+            source.sendSuccess(() ->
+                    Component.literal(String.format("Removed command \"%s\" from kit '%s'. (click to re-add)", command, kitName))
                         .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
                             String.format("/kit commands %s add %s", kitName, command)))),
                 true);
         } catch (IOException e) {
-            throw new CommandException(Text.literal("Failed to save kit."));
+            throw new CommandRuntimeException(Component.literal("Failed to save kit."));
         }
         return 1;
     }
 
     private static Kit getKit(String kitName) {
         if (!KIT_MAP.containsKey(kitName)) {
-            throw new CommandException(Text.literal(String.format("Kit '%s' does not exist", kitName)));
+            throw new CommandRuntimeException(Component.literal(String.format("Kit '%s' does not exist", kitName)));
         }
         return KIT_MAP.get(kitName);
     }

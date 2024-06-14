@@ -5,12 +5,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import net.minecraft.commands.CommandSourceStack;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-
-import net.minecraft.server.command.ServerCommandSource;
 
 public final class TimeUtil {
 
@@ -42,7 +40,7 @@ public final class TimeUtil {
         return time * TIME_WEIGHTS.get(timeUnit);
     }
 
-    public static CompletableFuture<Suggestions> suggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+    public static CompletableFuture<Suggestions> suggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
         return ListSuggestion.getSuggestionsBuilder(builder, TIME_WEIGHTS.keySet());
     }
 

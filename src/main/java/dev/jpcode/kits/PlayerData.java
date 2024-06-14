@@ -1,30 +1,29 @@
 package dev.jpcode.kits;
 
 import java.io.File;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.saveddata.SavedData;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.PersistentState;
+public abstract class PlayerData extends SavedData {
 
-public abstract class PlayerData extends PersistentState {
-
-    private ServerPlayerEntity player;
+    private ServerPlayer player;
     private final File saveFile;
 
-    PlayerData(ServerPlayerEntity player, File saveFile) {
+    PlayerData(ServerPlayer player, File saveFile) {
         this.player = player;
         this.saveFile = saveFile;
     }
 
-    public void setPlayer(ServerPlayerEntity serverPlayerEntity) {
+    public void setPlayer(ServerPlayer serverPlayerEntity) {
         this.player = serverPlayerEntity;
     }
 
-    public ServerPlayerEntity getPlayer() {
+    public ServerPlayer getPlayer() {
         return this.player;
     }
 
-    public abstract void fromNbt(NbtCompound nbtCompound3);
+    public abstract void fromNbt(CompoundTag nbtCompound3);
 
     public File getSaveFile() {
         return this.saveFile;

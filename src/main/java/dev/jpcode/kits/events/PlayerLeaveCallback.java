@@ -1,9 +1,8 @@
 package dev.jpcode.kits.events;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface PlayerLeaveCallback {
     Event<PlayerLeaveCallback> EVENT = EventFactory.createArrayBacked(PlayerLeaveCallback.class,
@@ -14,6 +13,6 @@ public interface PlayerLeaveCallback {
             }
         });
 
-    void onPlayerLeave(ServerPlayerEntity player);
+    void onPlayerLeave(ServerPlayer player);
 
 }

@@ -1,9 +1,8 @@
 package dev.jpcode.kits.events;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface PlayerRespawnCallback {
     Event<PlayerRespawnCallback> EVENT = EventFactory.createArrayBacked(PlayerRespawnCallback.class,
@@ -13,5 +12,5 @@ public interface PlayerRespawnCallback {
             }
         });
 
-    void onPlayerRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer);
+    void onPlayerRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer);
 }

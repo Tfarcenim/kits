@@ -1,13 +1,11 @@
 package dev.jpcode.kits.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import dev.jpcode.kits.PlayerKitData;
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
+import net.minecraft.server.level.ServerPlayer;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public class ServerPlayerEntityMixin implements ServerPlayerEntityAccess {
 
     private PlayerKitData kits$playerData;

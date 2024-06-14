@@ -1,10 +1,9 @@
 package dev.jpcode.kits.events;
 
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.network.Connection;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface PlayerConnectCallback {
     Event<PlayerConnectCallback> EVENT_HEAD = EventFactory.createArrayBacked(PlayerConnectCallback.class,
@@ -20,5 +19,5 @@ public interface PlayerConnectCallback {
             }
         });
 
-    void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player);
+    void onPlayerConnect(Connection connection, ServerPlayer player);
 }
