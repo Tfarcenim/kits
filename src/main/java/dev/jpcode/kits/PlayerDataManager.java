@@ -20,10 +20,6 @@ public class PlayerDataManager {
         this.dataMap = new LinkedHashMap<>();
     }
 
-    public static PlayerDataManager getInstance() {
-        return instance;
-    }
-
     static {
         PlayerConnectCallback.EVENT_HEAD.register(PlayerDataManager::onPlayerConnect);
         PlayerConnectCallback.EVENT_RETURN.register(PlayerDataManager::onPlayerConnectTail);
@@ -83,15 +79,6 @@ public class PlayerDataManager {
     public PlayerKitData addPlayer(ServerPlayerEntity player) {
         PlayerKitData playerData = PlayerKitDataFactory.create(player);
         dataMap.put(player.getUuid(), playerData);
-        return playerData;
-    }
-
-    public PlayerData getPlayerData(ServerPlayerEntity player) {
-        PlayerData playerData = dataMap.get(player.getUuid());
-
-        if (playerData == null) {
-            throw new NullPointerException(String.format("dataMap returned null for player with uuid %s", player.getUuid().toString()));
-        }
         return playerData;
     }
 
