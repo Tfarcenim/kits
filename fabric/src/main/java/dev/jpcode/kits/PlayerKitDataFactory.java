@@ -25,7 +25,7 @@ public final class PlayerKitDataFactory {
                 pData.fromNbt(nbtCompound);
 
             } catch (IOException e) {
-                KitsMod.LOGGER.warn("Failed to load kits player data for {" + player.getName().getString() + "}");
+                Kits.LOGGER.warn("Failed to load kits player data for {" + player.getName().getString() + "}");
                 e.printStackTrace();
             }
         }
@@ -41,7 +41,7 @@ public final class PlayerKitDataFactory {
                 dataDirectoryPath = Files.createDirectories(KitsMod.getUserDataDirDir());
             } catch (NullPointerException e) {
                 dataDirectoryPath = Files.createDirectories(Paths.get("./world/modplayerdata/"));
-                KitsMod.LOGGER.log(Level.WARN, "Session save path could not be found. Defaulting to ./world/modplayerdata");
+                Kits.LOGGER.warn("Session save path could not be found. Defaulting to ./world/modplayerdata");
             }
             playerDataFile = dataDirectoryPath.resolve(player.getStringUUID() + ".nbt").toFile();
             playerDataFile.createNewFile();

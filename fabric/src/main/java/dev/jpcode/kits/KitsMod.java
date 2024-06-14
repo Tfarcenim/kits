@@ -29,7 +29,6 @@ import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import dev.jpcode.kits.config.KitsConfig;
 
 public class KitsMod implements ModInitializer {
-    public static final Logger LOGGER = LogManager.getLogger("kits");
     public static final KitsConfig CONFIG = new KitsConfig(
         Path.of("./config/kits.properties"),
         "Kits Config",
@@ -55,7 +54,7 @@ public class KitsMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Kits is getting ready...");
+        Kits.LOGGER.info("Kits is getting ready...");
 
         KitPerms.init();
 
@@ -65,7 +64,7 @@ public class KitsMod implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register(KitsCommandRegistry::register);
 
-        LOGGER.info("Kits initialized.");
+        Kits.LOGGER.info("Kits initialized.");
     }
 
     public static void reloadKits(MinecraftServer server) {
@@ -82,7 +81,7 @@ public class KitsMod implements ModInitializer {
             }
             for (File kitFile : kitFiles) {
                 try {
-                    LOGGER.info(String.format("Loading kit '%s'", kitFile.getName()));
+                    Kits.LOGGER.info(String.format("Loading kit '%s'", kitFile.getName()));
                     CompoundTag kitNbt = NbtIo.read(kitFile);
                     String fileName = kitFile.getName();
                     String kitName = fileName.substring(0, fileName.length() - 4);
@@ -137,9 +136,9 @@ public class KitsMod implements ModInitializer {
         } else {
             starterKit = KIT_MAP.get(s);
             if (starterKit == null) {
-                LOGGER.warn(String.format("Provided starter kit name, '%s' could not be found.", s));
+                Kits.LOGGER.warn(String.format("Provided starter kit name, '%s' could not be found.", s));
             } else {
-                LOGGER.info(String.format("Starter kit set to '%s'", s));
+                Kits.LOGGER.info(String.format("Starter kit set to '%s'", s));
             }
         }
     }

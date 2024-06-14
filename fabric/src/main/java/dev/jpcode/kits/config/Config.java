@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import dev.jpcode.kits.Kits;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +21,6 @@ import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static dev.jpcode.kits.KitsMod.LOGGER;
 
 public abstract class Config {
 
@@ -44,7 +46,7 @@ public abstract class Config {
                 props.load(new FileReader(inFile));
             }
         } catch (IOException e) {
-            LOGGER.warn("Failed to load preferences.");
+            Kits.LOGGER.warn("Failed to load preferences.");
         }
         initProperties();
         storeProperties();
@@ -69,15 +71,13 @@ public abstract class Config {
             File outFile = configPath.toFile();
             FileWriter writer = new FileWriter(outFile);
 
-            props.storeSorted(writer, new StringBuilder(80)
-                .append(displayName)
-                .append("\n")
-                .append("Config Documentation: ")
-                .append(documentationLink)
-                .toString()
+            props.storeSorted(writer, displayName +
+                "\n" +
+                "Config Documentation: " +
+                documentationLink
             );
         } catch (IOException e) {
-            LOGGER.warn("Failed to store preferences to disk.");
+            Kits.LOGGER.warn("Failed to store preferences to disk.");
         }
 
     }

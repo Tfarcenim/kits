@@ -16,12 +16,7 @@ class SortedProperties extends Properties {
                  * Using comparator to avoid the following exception on jdk >=9:
                  * java.lang.ClassCastException: java.base/java.util.concurrent.ConcurrentHashMap$MapEntry cannot be cast to java.base/java.lang.Comparable
                  */
-                Set<Map.Entry<Object, Object>> sortedSet = new TreeSet<Map.Entry<Object, Object>>(new Comparator<Map.Entry<Object, Object>>() {
-                    @Override
-                    public int compare(Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) {
-                        return o1.getKey().toString().compareTo(o2.getKey().toString());
-                    }
-                }
+                Set<Map.Entry<Object, Object>> sortedSet = new TreeSet<>(Comparator.comparing(o -> o.getKey().toString())
                 );
                 sortedSet.addAll(super.entrySet());
                 return sortedSet;
@@ -29,12 +24,12 @@ class SortedProperties extends Properties {
 
             @Override
             public @NotNull Set<Object> keySet() {
-                return new TreeSet<Object>(super.keySet());
+                return new TreeSet<>(super.keySet());
             }
 
             @Override
             public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<Object>(super.keySet()));
+                return Collections.enumeration(new TreeSet<>(super.keySet()));
             }
 
         };
