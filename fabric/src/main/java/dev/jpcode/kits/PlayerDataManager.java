@@ -46,14 +46,14 @@ public class PlayerDataManager {
 
         // Detect if player has gotten starter kit
         if (!playerData.hasReceivedStarterKit()) {
-            Kit starterKit = KitsMod.getStarterKit();
+            Kit starterKit = KitsFabric.getStarterKit();
             if (starterKit != null) {
                 KitUtil.giveKit(player, starterKit);
                 if (!starterKit.commands().isEmpty())
                     KitUtil.runCommands(player, starterKit.commands());
                 playerData.setHasReceivedStarterKit(true);
-                if (KitsMod.CONFIG.starterKitSetCooldown.getValue())
-                    playerData.useKit(KitsMod.CONFIG.starterKit.getValue());
+                if (KitsFabric.CONFIG.starterKitSetCooldown.getValue())
+                    playerData.useKit(KitsFabric.CONFIG.starterKit.getValue());
             }
         }
     }

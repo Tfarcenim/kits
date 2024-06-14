@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 import static dev.jpcode.kits.InventoryUtil.offerAllCopies;
 import static dev.jpcode.kits.KitUtil.runCommands;
-import static dev.jpcode.kits.KitsMod.KIT_MAP;
+import static dev.jpcode.kits.KitsFabric.KIT_MAP;
 
 public class KitClaimCommand implements Command<CommandSourceStack> {
     @Override

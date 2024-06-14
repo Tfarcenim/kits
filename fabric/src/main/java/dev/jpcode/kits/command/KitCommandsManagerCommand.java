@@ -13,7 +13,7 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.jpcode.kits.Kit;
 
 import static dev.jpcode.kits.KitsCommandRegistry.saveKit;
-import static dev.jpcode.kits.KitsMod.KIT_MAP;
+import static dev.jpcode.kits.KitsFabric.KIT_MAP;
 
 public final class KitCommandsManagerCommand {
     private KitCommandsManagerCommand() {}

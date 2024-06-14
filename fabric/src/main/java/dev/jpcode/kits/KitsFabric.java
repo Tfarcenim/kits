@@ -8,9 +8,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -28,7 +25,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import dev.jpcode.kits.config.KitsConfig;
 
-public class KitsMod implements ModInitializer {
+public class KitsFabric implements ModInitializer {
     public static final KitsConfig CONFIG = new KitsConfig(
         Path.of("./config/kits.properties"),
         "Kits Config",
@@ -60,7 +57,7 @@ public class KitsMod implements ModInitializer {
 
         PlayerDataManager playerDataManager = new PlayerDataManager();
 
-        ServerLifecycleEvents.SERVER_STARTING.register(KitsMod::reloadKits);
+        ServerLifecycleEvents.SERVER_STARTING.register(KitsFabric::reloadKits);
 
         CommandRegistrationCallback.EVENT.register(KitsCommandRegistry::register);
 

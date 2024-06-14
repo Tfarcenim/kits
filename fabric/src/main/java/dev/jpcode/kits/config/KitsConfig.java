@@ -2,7 +2,7 @@ package dev.jpcode.kits.config;
 
 import java.nio.file.Path;
 
-import dev.jpcode.kits.KitsMod;
+import dev.jpcode.kits.KitsFabric;
 
 public final class KitsConfig extends Config {
 
@@ -13,7 +13,7 @@ public final class KitsConfig extends Config {
 
     public KitsConfig(Path savePath, String displayName, String documentationLink) {
         super(savePath, displayName, documentationLink);
-        starterKit.changeEvent.register(KitsMod::setStarterKit);
+        starterKit.changeEvent.register(KitsFabric::setStarterKit);
     }
 
 }

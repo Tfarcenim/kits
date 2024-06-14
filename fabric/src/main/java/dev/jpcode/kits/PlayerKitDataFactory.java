@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.logging.log4j.Level;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,7 +37,7 @@ public final class PlayerKitDataFactory {
         File playerDataFile = null;
         try {
             try {
-                dataDirectoryPath = Files.createDirectories(KitsMod.getUserDataDirDir());
+                dataDirectoryPath = Files.createDirectories(KitsFabric.getUserDataDirDir());
             } catch (NullPointerException e) {
                 dataDirectoryPath = Files.createDirectories(Paths.get("./world/modplayerdata/"));
                 Kits.LOGGER.warn("Session save path could not be found. Defaulting to ./world/modplayerdata");

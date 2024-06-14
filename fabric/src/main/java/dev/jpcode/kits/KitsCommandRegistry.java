@@ -33,8 +33,8 @@ import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import dev.jpcode.kits.command.KitClaimCommand;
 import dev.jpcode.kits.command.KitCommandsManagerCommand;
 
-import static dev.jpcode.kits.KitsMod.KIT_MAP;
-import static dev.jpcode.kits.KitsMod.getAllKitsForPlayer;
+import static dev.jpcode.kits.KitsFabric.KIT_MAP;
+import static dev.jpcode.kits.KitsFabric.getAllKitsForPlayer;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -70,7 +70,7 @@ public final class KitsCommandRegistry {
 
         NbtIo.write(
             root,
-            KitsMod.getKitsDir().toPath().resolve(String.format("%s.nbt", kitName)).toFile()
+            KitsFabric.getKitsDir().toPath().resolve(String.format("%s.nbt", kitName)).toFile()
         );
     }
 
@@ -106,7 +106,7 @@ public final class KitsCommandRegistry {
         kitNode.addChild(literal("setDisplayItem")
             .requires(Permissions.require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsMod::suggestionProvider)
+                .suggests(KitsFabric::suggestionProvider)
                 .then(argument("item", ItemArgument.item(commandRegistryAccess))
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
@@ -127,7 +127,7 @@ public final class KitsCommandRegistry {
 
         kitNode.addChild(literal("claim")
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsMod::suggestionProvider)
+                .suggests(KitsFabric::suggestionProvider)
                 .executes(new KitClaimCommand())
             ).build()
         );
@@ -135,13 +135,13 @@ public final class KitsCommandRegistry {
         kitNode.addChild(literal("remove")
             .requires(Permissions.require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsMod::suggestionProvider)
+                .suggests(KitsFabric::suggestionProvider)
                 .executes(context -> {
                     String kitName = StringArgumentType.getString(context, "kit_name");
                     KIT_MAP.remove(kitName);
 
                     try {
-                        Files.delete(KitsMod.getKitsDir().toPath().resolve(kitName + ".nbt"));
+                        Files.delete(KitsFabric.getKitsDir().toPath().resolve(kitName + ".nbt"));
                     } catch (IOException e) {
                         context.getSource().sendFailure(Component.nullToEmpty("Could not find kit file on disk."));
                         return -1;
@@ -157,7 +157,7 @@ public final class KitsCommandRegistry {
         kitNode.addChild(literal("reload")
             .requires(Permissions.require("kits.manage", 4))
             .executes(context -> {
-                KitsMod.reloadKits(context.getSource().getServer());
+                KitsFabric.reloadKits(context.getSource().getServer());
                 return 1;
             }).build()
         );
@@ -166,7 +166,7 @@ public final class KitsCommandRegistry {
             .requires(Permissions.require("kits.manage", 4))
             .then(argument("players", EntityArgument.players())
                 .then(argument("kit_name", StringArgumentType.word())
-                    .suggests(KitsMod::suggestionProvider)
+                    .suggests(KitsFabric::suggestionProvider)
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
                         var targetPlayers = EntityArgument.getPlayers(context, "players");
@@ -205,7 +205,7 @@ public final class KitsCommandRegistry {
         kitNode.addChild(literal("commands")
             .requires(Permissions.require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsMod::suggestionProvider)
+                .suggests(KitsFabric::suggestionProvider)
                 .then(literal("list")
                     .executes(KitCommandsManagerCommand::listCommandsForKit)
                 )
