@@ -17,6 +17,7 @@ public class Kit {
     private final long cooldown;
     private @Nullable Item displayItem;
     private ArrayList<String> commands;
+    String s = "https://github.com/John-Paul-R/kits/wiki/Basic-Usage";
 
     public Kit(KitInventory inventory, long cooldown) {
         this.inventory = inventory;

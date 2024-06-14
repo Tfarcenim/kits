@@ -3,10 +3,7 @@ package dev.jpcode.kits;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import dev.jpcode.kits.platform.Services;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,14 +21,7 @@ public class PlayerDataManager {
         this.dataMap = new LinkedHashMap<>();
     }
 
-    static {
-        ServerPlayConnectionEvents.JOIN.register(PlayerDataManager::onPlayerConnect);
-        ServerPlayConnectionEvents.DISCONNECT.register(PlayerDataManager::onPlayerLeave);
-        ServerPlayerEvents.COPY_FROM.register(PlayerDataManager::handlePlayerDataRespawnSync);
-    }
-
-    public static void onPlayerConnect(ServerGamePacketListenerImpl handler, PacketSender sender, MinecraftServer server) {
-        ServerPlayer player = handler.player;
+    public static void onPlayerConnect(ServerPlayer player) {
         PlayerKitData playerData = instance.addPlayer(player);
         ((ServerPlayerEntityAccess) player).kits$setPlayerData(playerData);
 
@@ -46,21 +36,20 @@ public class PlayerDataManager {
 
         // Detect if player has gotten starter kit
         if (!playerData.hasReceivedStarterKit()) {
-            Kit starterKit = KitsFabric.getStarterKit();
+            Kit starterKit = Kits.getStarterKit();
             if (starterKit != null) {
                 KitUtil.giveKit(player, starterKit);
                 if (!starterKit.commands().isEmpty())
                     KitUtil.runCommands(player, starterKit.commands());
                 playerData.setHasReceivedStarterKit(true);
-                if (KitsFabric.CONFIG.starterKitSetCooldown.getValue())
-                    playerData.useKit(KitsFabric.CONFIG.starterKit.getValue());
+                if (Services.PLATFORM.getConfig().starterKitSetCooldown())
+                    playerData.useKit(Services.PLATFORM.getConfig().starterKit());
             }
         }
     }
 
-    public static void onPlayerLeave(ServerGamePacketListenerImpl handler, MinecraftServer server) {
+    public static void onPlayerLeave(ServerPlayer player) {
         // Auto-saving should be handled by WorldSaveHandlerMixin. (PlayerData saves when MC server saves players)
-        ServerPlayer player = handler.player;
         instance.unloadPlayerData(player);
         ((ServerPlayerEntityAccess) player).kits$getPlayerData().save();
     }

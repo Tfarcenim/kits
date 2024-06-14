@@ -1,7 +1,13 @@
 package dev.jpcode.kits.platform;
 
+import dev.jpcode.kits.KitsFabric;
 import dev.jpcode.kits.platform.services.IPlatformHelper;
+
+import me.lucko.fabric.api.permissions.v0.Permissions;
+
 import net.fabricmc.loader.api.FabricLoader;
+
+import net.minecraft.commands.CommandSourceStack;
 
 public class FabricPlatformHelper implements IPlatformHelper {
 
@@ -20,5 +26,15 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public boolean isDevelopmentEnvironment() {
 
         return FabricLoader.getInstance().isDevelopmentEnvironment();
+    }
+
+    @Override
+    public MLConfig getConfig() {
+        return KitsFabric.CONFIG;
+    }
+
+    @Override
+    public boolean checkPermission(CommandSourceStack commandSourceStack, String key, int defaultV) {
+        return Permissions.check(commandSourceStack, key, defaultV);
     }
 }

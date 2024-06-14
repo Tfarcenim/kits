@@ -1,6 +1,7 @@
 package dev.jpcode.kits;
 
-import me.lucko.fabric.api.permissions.v0.Permissions;
+import dev.jpcode.kits.platform.Services;
+
 import net.minecraft.commands.CommandSourceStack;
 
 public final class KitPerms {
@@ -11,7 +12,7 @@ public final class KitPerms {
     }
 
     public static boolean checkKit(CommandSourceStack source, String kitName) {
-        return Permissions.check(source, "kits.claim." + kitName, 4);
+        return Services.PLATFORM.checkPermission(source, "kits.claim." + kitName, 4);
     }
 
 }

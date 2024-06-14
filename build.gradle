@@ -55,6 +55,20 @@ subprojects {
         maven { url 'https://maven.nucleoid.xyz' }
         maven { url = 'https://maven.parchmentmc.org' }
 
+        maven { url "https://maven.terraformersmc.com/releases" }//modmenu
+
+
+        maven {
+            url "https://maven.shedaniel.me"
+            content {
+                includeGroup "me.shedaniel.cloth.api"
+                includeGroup "me.sargunvohra.mcmods"
+                includeGroup "me.shedaniel.cloth"
+                includeGroup "me.shedaniel"
+                includeGroup "dev.architectury"
+            }
+        }
+
     }
 
     tasks.withType(JavaCompile).configureEach {

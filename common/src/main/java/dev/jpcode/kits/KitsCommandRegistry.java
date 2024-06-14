@@ -5,9 +5,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
+
+import dev.jpcode.kits.platform.Services;
 
 import eu.pb4.sgui.api.gui.SimpleGuiBuilder;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -33,8 +35,6 @@ import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import dev.jpcode.kits.command.KitClaimCommand;
 import dev.jpcode.kits.command.KitCommandsManagerCommand;
 
-import static dev.jpcode.kits.KitsFabric.KIT_MAP;
-import static dev.jpcode.kits.KitsFabric.getAllKitsForPlayer;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -50,7 +50,7 @@ public final class KitsCommandRegistry {
     }
 
     static int addKit(CommandContext<CommandSourceStack> context, String kitName, Kit kit) {
-        KIT_MAP.put(kitName, kit);
+        Kits.KIT_MAP.put(kitName, kit);
 
         try {
             saveKit(kitName, kit);
@@ -70,7 +70,7 @@ public final class KitsCommandRegistry {
 
         NbtIo.write(
             root,
-            KitsFabric.getKitsDir().toPath().resolve(String.format("%s.nbt", kitName)).toFile()
+            Kits.getKitsDir().toPath().resolve(String.format("%s.nbt", kitName)).toFile()
         );
     }
 
@@ -81,7 +81,7 @@ public final class KitsCommandRegistry {
         CommandNode<CommandSourceStack> kitNode = dispatcher.register(literal("kit"));
 
         kitNode.addChild(literal("add")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .then(argument("cooldown", LongArgumentType.longArg(-1))
                     .executes(context -> addKit(
@@ -104,15 +104,15 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("setDisplayItem")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsFabric::suggestionProvider)
+                .suggests(Kits::suggestionProvider)
                 .then(argument("item", ItemArgument.item(commandRegistryAccess))
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
                         var item = ItemArgument.getItem(context, "item");
 
-                        var existingKit = KIT_MAP.get(kitName);
+                        var existingKit = Kits.KIT_MAP.get(kitName);
                         existingKit.setDisplayItem(item.getItem());
                         try {
                             saveKit(kitName, existingKit);
@@ -127,21 +127,21 @@ public final class KitsCommandRegistry {
 
         kitNode.addChild(literal("claim")
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsFabric::suggestionProvider)
+                .suggests(Kits::suggestionProvider)
                 .executes(new KitClaimCommand())
             ).build()
         );
 
         kitNode.addChild(literal("remove")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsFabric::suggestionProvider)
+                .suggests(Kits::suggestionProvider)
                 .executes(context -> {
                     String kitName = StringArgumentType.getString(context, "kit_name");
-                    KIT_MAP.remove(kitName);
+                    Kits.KIT_MAP.remove(kitName);
 
                     try {
-                        Files.delete(KitsFabric.getKitsDir().toPath().resolve(kitName + ".nbt"));
+                        Files.delete(Kits.getKitsDir().toPath().resolve(kitName + ".nbt"));
                     } catch (IOException e) {
                         context.getSource().sendFailure(Component.nullToEmpty("Could not find kit file on disk."));
                         return -1;
@@ -155,18 +155,18 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("reload")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .executes(context -> {
-                KitsFabric.reloadKits(context.getSource().getServer());
+                Kits.reloadKits(context.getSource().getServer());
                 return 1;
             }).build()
         );
 
         kitNode.addChild(literal("resetPlayerKit")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("players", EntityArgument.players())
                 .then(argument("kit_name", StringArgumentType.word())
-                    .suggests(KitsFabric::suggestionProvider)
+                    .suggests(Kits::suggestionProvider)
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
                         var targetPlayers = EntityArgument.getPlayers(context, "players");
@@ -185,7 +185,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("resetPlayer")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("players", EntityArgument.players())
                 .executes(context -> {
                     var targetPlayers = EntityArgument.getPlayers(context, "players");
@@ -203,9 +203,9 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("commands")
-            .requires(Permissions.require("kits.manage", 4))
+            .requires(require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
-                .suggests(KitsFabric::suggestionProvider)
+                .suggests(Kits::suggestionProvider)
                 .then(literal("list")
                     .executes(KitCommandsManagerCommand::listCommandsForKit)
                 )
@@ -218,8 +218,8 @@ public final class KitsCommandRegistry {
                     .then(argument("command", StringArgumentType.greedyString())
                         .suggests((CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) -> {
                             String kitName = StringArgumentType.getString(context, "kit_name");
-                            return ListSuggestion.getSuggestionsBuilder(builder, KIT_MAP.containsKey(kitName)
-                                ? KIT_MAP.get(kitName).commands()
+                            return ListSuggestion.getSuggestionsBuilder(builder, Kits.KIT_MAP.containsKey(kitName)
+                                ? Kits.KIT_MAP.get(kitName).commands()
                                 : new ArrayList<>());
                         })
                         .executes(KitCommandsManagerCommand::removeCommandFromKit)
@@ -233,7 +233,7 @@ public final class KitsCommandRegistry {
             .executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
                 var playerData = ((ServerPlayerEntityAccess) player).kits$getPlayerData();
-                var allPlayerKits = getAllKitsForPlayer(player);
+                var allPlayerKits = Kits.getAllKitsForPlayer(player);
 
                 long currentTime = Util.getEpochMillis();
                 Function<Map.Entry<String, Kit>, Boolean> canUseKit = (entry) ->
@@ -269,6 +269,10 @@ public final class KitsCommandRegistry {
                 return 0;
             });
         dispatcher.register(kitsSguiBuilder);
+    }
+
+    private static Predicate<CommandSourceStack> require(String key,int defaultV) {
+        return source -> Services.PLATFORM.checkPermission(source,key,defaultV);
     }
 
     private static ItemStack createKitItemStack(String kitName, ItemStack itemStack) {

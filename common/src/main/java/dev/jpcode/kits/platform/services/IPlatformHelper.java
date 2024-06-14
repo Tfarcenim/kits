@@ -1,5 +1,13 @@
 package dev.jpcode.kits.platform.services;
 
+import dev.jpcode.kits.platform.MLConfig;
+
+import net.minecraft.commands.CommandSourceStack;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Predicate;
+
 public interface IPlatformHelper {
 
     /**
@@ -33,4 +41,9 @@ public interface IPlatformHelper {
 
         return isDevelopmentEnvironment() ? "development" : "production";
     }
+
+    MLConfig getConfig();
+
+    boolean checkPermission(CommandSourceStack commandSourceStack, String key, int defaultV);
+
 }

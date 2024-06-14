@@ -4,10 +4,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.jpcode.kits.Kit;
-import dev.jpcode.kits.KitPerms;
-import dev.jpcode.kits.PlayerKitData;
-import dev.jpcode.kits.TimeUtil;
+
+import dev.jpcode.kits.*;
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,9 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 
-import static dev.jpcode.kits.InventoryUtil.offerAllCopies;
-import static dev.jpcode.kits.KitUtil.runCommands;
-import static dev.jpcode.kits.KitsFabric.KIT_MAP;
 
 public class KitClaimCommand implements Command<CommandSourceStack> {
     @Override
@@ -30,7 +25,7 @@ public class KitClaimCommand implements Command<CommandSourceStack> {
         PlayerKitData playerData = ((ServerPlayerEntityAccess) player).kits$getPlayerData();
         var commandSource = player.createCommandSourceStack();
 
-        Kit kit = KIT_MAP.get(kitName);
+        Kit kit = Kits.KIT_MAP.get(kitName);
         long currentTime = Util.getEpochMillis();
         long remainingTime = (playerData.getKitUsedTime(kitName) + kit.cooldown()) - currentTime;
 
@@ -51,8 +46,8 @@ public class KitClaimCommand implements Command<CommandSourceStack> {
 
         Inventory playerInventory = player.getInventory();
         playerData.useKit(kitName);
-        offerAllCopies(kit.inventory(), playerInventory);
-        if (!kit.commands().isEmpty()) runCommands(player, kit.commands());
+        InventoryUtil.offerAllCopies(kit.inventory(), playerInventory);
+        if (!kit.commands().isEmpty()) KitUtil.runCommands(player, kit.commands());
 
         commandSource.sendSuccess(() ->
             Component.nullToEmpty(String.format("Successfully claimed kit '%s'!", kitName)),
