@@ -2,14 +2,16 @@ package dev.jpcode.kits;
 
 import java.util.ArrayList;
 import java.util.Optional;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
+
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.item.Item;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 public class Kit {
 
@@ -70,34 +72,34 @@ public class Kit {
         public static final String COMMANDS = "commands";
     }
 
-    public void writeNbt(CompoundTag root) {
-        root.put(StorageKey.INVENTORY, this.inventory().writeNbt(new ListTag()));
+    public void writeNbt(NbtCompound root) {
+        root.put(StorageKey.INVENTORY, this.inventory().writeNbt(new NbtList()));
         root.putLong(StorageKey.COOLDOWN, this.cooldown());
         if (this.displayItem().isPresent()) {
             root.putString(
                 StorageKey.DISPLAY_ITEM,
-                BuiltInRegistries.ITEM.getResourceKey(this.displayItem().get()).get().location().toString());
+                Registries.ITEM.getKey(this.displayItem().get()).get().getValue().toString());
         }
         if (!commands.isEmpty()) {
-            ListTag list = new ListTag();
+            NbtList list = new NbtList();
             for (String command : commands) {
-                list.add(StringTag.valueOf(command));
+                list.add(NbtString.of(command));
             }
             root.put(StorageKey.COMMANDS, list);
         }
     }
 
-    public static Kit fromNbt(CompoundTag kitNbt) {
+    public static Kit fromNbt(NbtCompound kitNbt) {
         var kitInventory = new KitInventory();
 
         assert kitNbt != null;
-        kitInventory.readNbt(kitNbt.getList(StorageKey.INVENTORY, Tag.TAG_COMPOUND));
+        kitInventory.readNbt(kitNbt.getList(StorageKey.INVENTORY, NbtElement.COMPOUND_TYPE));
         long cooldown = kitNbt.getLong(StorageKey.COOLDOWN);
         var kitDisplayItem = kitNbt.contains(StorageKey.DISPLAY_ITEM)
-            ? BuiltInRegistries.ITEM.get(new ResourceLocation(kitNbt.getString(StorageKey.DISPLAY_ITEM)))
+            ? Registries.ITEM.get(new Identifier(kitNbt.getString(StorageKey.DISPLAY_ITEM)))
             : null;
         ArrayList<String> commands = kitNbt.contains(StorageKey.COMMANDS)
-            ? new ArrayList<>(kitNbt.getList(StorageKey.COMMANDS, Tag.TAG_STRING).stream().map(Tag::getAsString).toList())
+            ? new ArrayList<>(kitNbt.getList(StorageKey.COMMANDS, NbtElement.STRING_TYPE).stream().map(NbtElement::asString).toList())
             : new ArrayList<>();
 
         return new Kit(kitInventory, cooldown, kitDisplayItem, commands);

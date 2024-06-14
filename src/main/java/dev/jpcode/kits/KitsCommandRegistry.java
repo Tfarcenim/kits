@@ -3,65 +3,61 @@ package dev.jpcode.kits;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Function;
-import java.util.stream.Stream;
-import eu.pb4.sgui.api.gui.SimpleGui;
+
 import eu.pb4.sgui.api.gui.SimpleGuiBuilder;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.CommandNode;
-import net.minecraft.Util;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandRuntimeException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.commands.arguments.item.ItemInput;
-import net.minecraft.nbt.CompoundTag;
+
+import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.ItemStackArgumentType;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
+import net.minecraft.util.Util;
+
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 import dev.jpcode.kits.command.KitClaimCommand;
 import dev.jpcode.kits.command.KitCommandsManagerCommand;
 
 import static dev.jpcode.kits.KitsMod.KIT_MAP;
 import static dev.jpcode.kits.KitsMod.getAllKitsForPlayer;
-import static net.minecraft.commands.Commands.argument;
-import static net.minecraft.commands.Commands.literal;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public final class KitsCommandRegistry {
 
     private KitsCommandRegistry() {
     }
 
-    static int addKit(CommandContext<CommandSourceStack> context, String kitName, Inventory sourceInventory, long cooldown) {
+    static int addKit(CommandContext<ServerCommandSource> context, String kitName, PlayerInventory sourceInventory, long cooldown) {
         var kitInventory = new KitInventory();
         kitInventory.copyFrom(sourceInventory);
         return addKit(context, kitName, new Kit(kitInventory, cooldown));
     }
 
-    static int addKit(CommandContext<CommandSourceStack> context, String kitName, Kit kit) {
+    static int addKit(CommandContext<ServerCommandSource> context, String kitName, Kit kit) {
         KIT_MAP.put(kitName, kit);
 
         try {
             saveKit(kitName, kit);
-            context.getSource().sendSuccess(() ->
-                Component.nullToEmpty(String.format("Kit '%s' created from current inventory.", kitName)),
+            context.getSource().sendFeedback(() ->
+                Text.of(String.format("Kit '%s' created from current inventory.", kitName)),
                 true
             );
         } catch (IOException e) {
@@ -71,7 +67,7 @@ public final class KitsCommandRegistry {
     }
 
     public static void saveKit(String kitName, Kit kit) throws IOException {
-        CompoundTag root = new CompoundTag();
+        NbtCompound root = new NbtCompound();
         kit.writeNbt(root);
 
         NbtIo.write(
@@ -81,10 +77,10 @@ public final class KitsCommandRegistry {
     }
 
     public static void register(
-        CommandDispatcher<CommandSourceStack> dispatcher,
-        CommandBuildContext commandRegistryAccess,
-        Commands.CommandSelection registrationEnvironment) {
-        CommandNode<CommandSourceStack> kitNode = dispatcher.register(literal("kit"));
+        CommandDispatcher<ServerCommandSource> dispatcher,
+        CommandRegistryAccess commandRegistryAccess,
+        CommandManager.RegistrationEnvironment registrationEnvironment) {
+        CommandNode<ServerCommandSource> kitNode = dispatcher.register(literal("kit"));
 
         kitNode.addChild(literal("add")
             .requires(Permissions.require("kits.manage", 4))
@@ -113,17 +109,17 @@ public final class KitsCommandRegistry {
             .requires(Permissions.require("kits.manage", 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .suggests(KitsMod::suggestionProvider)
-                .then(argument("item", ItemArgument.item(commandRegistryAccess))
+                .then(argument("item", ItemStackArgumentType.itemStack(commandRegistryAccess))
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
-                        var item = ItemArgument.getItem(context, "item");
+                        var item = ItemStackArgumentType.getItemStackArgument(context, "item");
 
                         var existingKit = KIT_MAP.get(kitName);
                         existingKit.setDisplayItem(item.getItem());
                         try {
                             saveKit(kitName, existingKit);
                         } catch (IOException e) {
-                            throw new CommandRuntimeException(Component.literal("Failed to save kit."));
+                            throw new CommandException(Text.literal("Failed to save kit."));
                         }
                         return 0;
                     })
@@ -149,11 +145,11 @@ public final class KitsCommandRegistry {
                     try {
                         Files.delete(KitsMod.getKitsDir().toPath().resolve(kitName + ".nbt"));
                     } catch (IOException e) {
-                        context.getSource().sendFailure(Component.nullToEmpty("Could not find kit file on disk."));
+                        context.getSource().sendError(Text.of("Could not find kit file on disk."));
                         return -1;
                     }
 
-                    context.getSource().sendSuccess(() -> Component.nullToEmpty(String.format("Removed kit '%s'.", kitName)), true);
+                    context.getSource().sendFeedback(() -> Text.of(String.format("Removed kit '%s'.", kitName)), true);
 
                     return 1;
                 })
@@ -170,19 +166,19 @@ public final class KitsCommandRegistry {
 
         kitNode.addChild(literal("resetPlayerKit")
             .requires(Permissions.require("kits.manage", 4))
-            .then(argument("players", EntityArgument.players())
+            .then(argument("players", EntityArgumentType.players())
                 .then(argument("kit_name", StringArgumentType.word())
                     .suggests(KitsMod::suggestionProvider)
                     .executes(context -> {
                         var kitName = StringArgumentType.getString(context, "kit_name");
-                        var targetPlayers = EntityArgument.getPlayers(context, "players");
+                        var targetPlayers = EntityArgumentType.getPlayers(context, "players");
 
                         for (var player : targetPlayers) {
                             ((ServerPlayerEntityAccess) player).kits$getPlayerData().resetKitCooldown(kitName);
                         }
 
-                        context.getSource().sendSuccess(() ->
-                            Component.literal(String.format("Reset kit '%s' cooldown for %d players", kitName, targetPlayers.size())),
+                        context.getSource().sendFeedback(() ->
+                            Text.literal(String.format("Reset kit '%s' cooldown for %d players", kitName, targetPlayers.size())),
                             true);
 
                         return 1;
@@ -192,15 +188,15 @@ public final class KitsCommandRegistry {
 
         kitNode.addChild(literal("resetPlayer")
             .requires(Permissions.require("kits.manage", 4))
-            .then(argument("players", EntityArgument.players())
+            .then(argument("players", EntityArgumentType.players())
                 .executes(context -> {
-                    var targetPlayers = EntityArgument.getPlayers(context, "players");
+                    var targetPlayers = EntityArgumentType.getPlayers(context, "players");
                     for (var player : targetPlayers) {
                         ((ServerPlayerEntityAccess) player).kits$getPlayerData().resetAllKits();
                     }
 
-                    context.getSource().sendSuccess(() ->
-                        Component.literal(String.format("Reset all kit cooldowns for %d players", targetPlayers.size())),
+                    context.getSource().sendFeedback(() ->
+                        Text.literal(String.format("Reset all kit cooldowns for %d players", targetPlayers.size())),
                         true);
 
                     return 1;
@@ -222,7 +218,7 @@ public final class KitsCommandRegistry {
                 )
                 .then(literal("remove")
                     .then(argument("command", StringArgumentType.greedyString())
-                        .suggests((CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) -> {
+                        .suggests((CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) -> {
                             String kitName = StringArgumentType.getString(context, "kit_name");
                             return ListSuggestion.getSuggestionsBuilder(builder, KIT_MAP.containsKey(kitName)
                                 ? KIT_MAP.get(kitName).commands()
@@ -237,17 +233,17 @@ public final class KitsCommandRegistry {
 
         var kitsSguiBuilder = literal("kits")
             .executes(ctx -> {
-                var player = ctx.getSource().getPlayerOrException();
+                var player = ctx.getSource().getPlayerOrThrow();
                 var playerData = ((ServerPlayerEntityAccess) player).kits$getPlayerData();
                 var allPlayerKits = getAllKitsForPlayer(player);
 
-                long currentTime = Util.getEpochMillis();
+                long currentTime = Util.getEpochTimeMs();
                 Function<Map.Entry<String, Kit>, Boolean> canUseKit = (entry) ->
                     (playerData.getKitUsedTime(entry.getKey()) + entry.getValue().cooldown()) - currentTime <= 0;
 
-                var simpleGuiBuilder = new SimpleGuiBuilder(MenuType.GENERIC_9x3, false);
+                var simpleGuiBuilder = new SimpleGuiBuilder(ScreenHandlerType.GENERIC_9X3, false);
                 simpleGuiBuilder.setLockPlayerInventory(true);
-                simpleGuiBuilder.setTitle(Component.literal("Claim Kit"));
+                simpleGuiBuilder.setTitle(Text.literal("Claim Kit"));
 
                 int i = 0;
                 for (var kitEntry : allPlayerKits.toList()) {
@@ -256,7 +252,7 @@ public final class KitsCommandRegistry {
                                 .displayItem()
                                 .orElse(Items.EMERALD_BLOCK)
                             : Items.GRAY_CONCRETE_POWDER)
-                        .getDefaultInstance();
+                        .getDefaultStack();
 
                     simpleGuiBuilder.setSlot(
                         i++,
@@ -280,6 +276,6 @@ public final class KitsCommandRegistry {
     private static ItemStack createKitItemStack(String kitName, ItemStack itemStack) {
         return itemStack
             .copy()
-            .setHoverName(Component.literal(kitName));
+            .setCustomName(Text.literal(kitName));
     }
 }

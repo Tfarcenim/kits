@@ -11,12 +11,14 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static dev.jpcode.kits.KitsMod.LOGGER;
 
@@ -82,16 +84,16 @@ public abstract class Config {
 
     }
 
-    static final Style DEFAULT_STYLE = Style.EMPTY.applyFormat(ChatFormatting.GOLD);
-    static final Style ACCENT_STYLE = Style.EMPTY.applyFormat(ChatFormatting.GREEN);
+    static final Style DEFAULT_STYLE = Style.EMPTY.withFormatting(Formatting.GOLD);
+    static final Style ACCENT_STYLE = Style.EMPTY.withFormatting(Formatting.GREEN);
 
-    public @NotNull Component stateAsText() {
-        var result = Component.empty();
+    public @NotNull Text stateAsText() {
+        var result = Text.empty();
         String newLine = "\n";//System.getProperty("line.separator");
 
-        result.append(Component.literal(displayName + " {").setStyle(DEFAULT_STYLE));
+        result.append(Text.literal(displayName + " {").setStyle(DEFAULT_STYLE));
         result.append(newLine);
-        var propsText = Component.empty();
+        var propsText = Text.empty();
         result.append(propsText);
 
         //print field names paired with their values
@@ -104,7 +106,7 @@ public abstract class Config {
                 ex.printStackTrace();
             }
         }
-        result.append(Component.literal("}").setStyle(ACCENT_STYLE));
+        result.append(Text.literal("}").setStyle(ACCENT_STYLE));
 
         return result;
 
@@ -131,13 +133,13 @@ public abstract class Config {
         return publicFieldNames;
     }
 
-    private MutableComponent fieldAsText(Field field) throws IllegalAccessException {
-        return Component.empty()
-            .append(Component.literal(field.getName() + ": ").setStyle(DEFAULT_STYLE))
-            .append(Component.literal(field.get(this.getClass()).toString()));
+    private MutableText fieldAsText(Field field) throws IllegalAccessException {
+        return Text.empty()
+            .append(Text.literal(field.getName() + ": ").setStyle(DEFAULT_STYLE))
+            .append(Text.literal(field.get(this.getClass()).toString()));
     }
 
-    public @Nullable MutableComponent getFieldValueAsText(String fieldName) throws NoSuchFieldException {
+    public @Nullable MutableText getFieldValueAsText(String fieldName) throws NoSuchFieldException {
         try {
             return fieldAsText(this.getClass().getField(fieldName));
         } catch (IllegalAccessException e) {

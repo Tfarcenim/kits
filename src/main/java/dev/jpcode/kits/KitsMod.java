@@ -14,13 +14,15 @@ import org.apache.logging.log4j.Logger;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.Util;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.nbt.CompoundTag;
+
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Util;
+import net.minecraft.util.WorldSavePath;
+
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -70,8 +72,8 @@ public class KitsMod implements ModInitializer {
 
     public static void reloadKits(MinecraftServer server) {
         KIT_MAP.clear();
-        kitsDir = server.getServerDirectory().toPath().resolve("config/kits").toFile();
-        userDataDir = server.getWorldPath(LevelResource.ROOT).resolve("kits_user_data");
+        kitsDir = server.getRunDirectory().toPath().resolve("config/kits").toFile();
+        userDataDir = server.getSavePath(WorldSavePath.ROOT).resolve("kits_user_data");
 
         // if the dir was not just created, load all kits from dir.
         if (!kitsDir.mkdirs()) {
@@ -83,7 +85,7 @@ public class KitsMod implements ModInitializer {
             for (File kitFile : kitFiles) {
                 try {
                     LOGGER.info(String.format("Loading kit '%s'", kitFile.getName()));
-                    CompoundTag kitNbt = NbtIo.read(kitFile);
+                    NbtCompound kitNbt = NbtIo.read(kitFile);
                     String fileName = kitFile.getName();
                     String kitName = fileName.substring(0, fileName.length() - 4);
                     KIT_MAP.put(kitName, Kit.fromNbt(kitNbt));
@@ -95,8 +97,8 @@ public class KitsMod implements ModInitializer {
         CONFIG.loadOrCreateProperties();
     }
 
-    public static Stream<Map.Entry<String, Kit>> getAllKitsForPlayer(ServerPlayer player) {
-        var source = player.createCommandSourceStack();
+    public static Stream<Map.Entry<String, Kit>> getAllKitsForPlayer(ServerPlayerEntity player) {
+        var source = player.getCommandSource();
         return KIT_MAP.entrySet()
             .stream()
             .filter(kitEntry ->
@@ -104,9 +106,9 @@ public class KitsMod implements ModInitializer {
             );
     }
 
-    public static Stream<Map.Entry<String, Kit>> getClaimableKitsForPlayer(ServerPlayer player) {
+    public static Stream<Map.Entry<String, Kit>> getClaimableKitsForPlayer(ServerPlayerEntity player) {
         var playerData = ((ServerPlayerEntityAccess) player).kits$getPlayerData();
-        long currentTime = Util.getEpochMillis();
+        long currentTime = Util.getEpochTimeMs();
 
         return getAllKitsForPlayer(player)
             .filter(entry -> {
@@ -122,8 +124,8 @@ public class KitsMod implements ModInitializer {
      * @param builder
      * @return suggestions for existing kits that the user has permissions for.
      */
-    public static CompletableFuture<Suggestions> suggestionProvider(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-        CommandSourceStack source = context.getSource();
+    public static CompletableFuture<Suggestions> suggestionProvider(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+        ServerCommandSource source = context.getSource();
         return ListSuggestion.getSuggestionsBuilder(
             builder,
             getAllKitsForPlayer(source.getPlayer())

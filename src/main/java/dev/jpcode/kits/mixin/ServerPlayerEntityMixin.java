@@ -1,16 +1,15 @@
 package dev.jpcode.kits.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+
+import net.minecraft.server.network.ServerPlayerEntity;
+
 import dev.jpcode.kits.PlayerKitData;
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
-import net.minecraft.server.level.ServerPlayer;
 
-import org.spongepowered.asm.mixin.Unique;
-
-@Mixin(ServerPlayer.class)
+@Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin implements ServerPlayerEntityAccess {
 
-    @Unique
     private PlayerKitData kits$playerData;
 
     @Override

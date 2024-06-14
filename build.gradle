@@ -31,10 +31,7 @@ allprojects {
     dependencies {
         // Fabric
         minecraft "com.mojang:minecraft:${project.minecraft_version}"
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-$minecraft_version:$parch_mapping@zip")
-        }
+        mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
         modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
         // Mods
@@ -254,8 +251,6 @@ publishing {
                 password getenv('GITHUB_TOKEN') as String
             }
         }
-        maven { url = 'https://maven.parchmentmc.org' }
-
     }
 }
 
@@ -283,10 +278,3 @@ String readChangelogFromFile() {
 }
 
 publish.finalizedBy tasks.curseforge, tasks.modrinth
-// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
-    }
-}

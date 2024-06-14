@@ -8,20 +8,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.logging.log4j.Level;
-import net.minecraft.nbt.CompoundTag;
+
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public final class PlayerKitDataFactory {
 
     private PlayerKitDataFactory() {}
 
-    public static PlayerKitData create(ServerPlayer player) {
+    public static PlayerKitData create(ServerPlayerEntity player) {
         File saveFile = getPlayerDataFile(player);
         PlayerKitData pData = new PlayerKitData(player, saveFile);
         if (Files.exists(saveFile.toPath()) && saveFile.length() != 0) {
             try {
-                CompoundTag nbtCompound = NbtIo.readCompressed(new FileInputStream(saveFile));
+                NbtCompound nbtCompound = NbtIo.readCompressed(new FileInputStream(saveFile));
                 pData.fromNbt(nbtCompound);
 
             } catch (IOException e) {
@@ -29,11 +30,11 @@ public final class PlayerKitDataFactory {
                 e.printStackTrace();
             }
         }
-        pData.setDirty();
+        pData.markDirty();
         return pData;
     }
 
-    private static File getPlayerDataFile(ServerPlayer player) {
+    private static File getPlayerDataFile(ServerPlayerEntity player) {
         Path dataDirectoryPath;
         File playerDataFile = null;
         try {
@@ -43,7 +44,7 @@ public final class PlayerKitDataFactory {
                 dataDirectoryPath = Files.createDirectories(Paths.get("./world/modplayerdata/"));
                 KitsMod.LOGGER.log(Level.WARN, "Session save path could not be found. Defaulting to ./world/modplayerdata");
             }
-            playerDataFile = dataDirectoryPath.resolve(player.getStringUUID() + ".nbt").toFile();
+            playerDataFile = dataDirectoryPath.resolve(player.getUuidAsString() + ".nbt").toFile();
             playerDataFile.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
