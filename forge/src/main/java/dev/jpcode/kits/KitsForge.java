@@ -1,5 +1,7 @@
 package dev.jpcode.kits;
 
+import dev.jpcode.kits.platform.ForgePlatformHelper;
+
 import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -12,7 +14,12 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.server.permission.events.PermissionGatherEvent;
+import net.minecraftforge.server.permission.nodes.PermissionNode;
+import net.minecraftforge.server.permission.nodes.PermissionTypes;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Map;
 
 @Mod(Kits.MOD_ID)
 public class KitsForge {
@@ -27,6 +34,7 @@ public class KitsForge {
         MinecraftForge.EVENT_BUS.addListener(this::playerJoin);
         MinecraftForge.EVENT_BUS.addListener(this::playerLeave);
         MinecraftForge.EVENT_BUS.addListener(this::clonePlayer);
+        MinecraftForge.EVENT_BUS.addListener(this::registerNodes);
 
 
         Kits.init();
@@ -38,6 +46,15 @@ public class KitsForge {
         final Pair<TomlConfig.Server, ForgeConfigSpec> specPair2 = new ForgeConfigSpec.Builder().configure(TomlConfig.Server::new);
         SERVER_SPEC = specPair2.getRight();
         SERVER = specPair2.getLeft();
+    }
+
+
+    public void registerNodes(PermissionGatherEvent.Nodes event) {
+        ForgePlatformHelper.nodeMap.clear();
+        event.addNodes(ForgePlatformHelper.MANAGE_NODE,ForgePlatformHelper.CLAIM_NODE);
+        ForgePlatformHelper.nodeMap.put(KitsCommandRegistry.MANAGE,ForgePlatformHelper.MANAGE_NODE);
+        ForgePlatformHelper.nodeMap.put(KitsCommandRegistry.CLAIM,ForgePlatformHelper.CLAIM_NODE);
+
     }
 
     private void serverStarted(ServerStartedEvent event) {

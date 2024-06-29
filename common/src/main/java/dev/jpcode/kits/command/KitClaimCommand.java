@@ -29,7 +29,7 @@ public class KitClaimCommand implements Command<CommandSourceStack> {
         long currentTime = Util.getEpochMillis();
         long remainingTime = (playerData.getKitUsedTime(kitName) + kit.cooldown()) - currentTime;
 
-        if (!KitPerms.checkKit(commandSource, kitName)) {
+        if (!Kits.checkKit(commandSource, kitName)) {
             commandSource.sendFailure(Component.nullToEmpty(String.format(
                 "Insufficient permissions for kit '%s'.",
                 kitName)));

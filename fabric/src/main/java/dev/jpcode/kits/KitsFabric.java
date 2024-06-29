@@ -19,9 +19,6 @@ public class KitsFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         Kits.LOGGER.info("Kits is getting ready...");
-
-        KitPerms.init();
-
         AutoConfig.register(KitsClothConfig.class, JanksonConfigSerializer::new);
         CONFIG = AutoConfig.getConfigHolder(KitsClothConfig.class).getConfig();
 

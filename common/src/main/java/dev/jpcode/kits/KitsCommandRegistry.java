@@ -45,6 +45,10 @@ public final class KitsCommandRegistry {
     private KitsCommandRegistry() {
     }
 
+    public static final String MANAGE = "manage";
+    public static final String CLAIM = "claim";
+    public static final String[] permission_keys = new String[]{MANAGE,CLAIM};
+
     static int addKit(CommandContext<CommandSourceStack> context, String kitName, Inventory sourceInventory, long cooldown) {
         var kitInventory = new KitInventory();
         kitInventory.copyFrom(sourceInventory);
@@ -83,7 +87,7 @@ public final class KitsCommandRegistry {
         CommandNode<CommandSourceStack> kitNode = dispatcher.register(literal("kit"));
 
         kitNode.addChild(literal("add")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .then(argument("cooldown", LongArgumentType.longArg(-1))
                     .executes(context -> addKit(
@@ -106,7 +110,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("setDisplayItem")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .suggests(Kits::suggestionProvider)
                 .then(argument("item", ItemArgument.item(commandRegistryAccess))
@@ -135,7 +139,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("remove")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .suggests(Kits::suggestionProvider)
                 .executes(context -> {
@@ -157,7 +161,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("reload")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .executes(context -> {
                 Kits.reloadKits(context.getSource().getServer());
                 return 1;
@@ -165,7 +169,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("resetPlayerKit")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("players", EntityArgument.players())
                 .then(argument("kit_name", StringArgumentType.word())
                     .suggests(Kits::suggestionProvider)
@@ -187,7 +191,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("resetPlayer")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("players", EntityArgument.players())
                 .executes(context -> {
                     var targetPlayers = EntityArgument.getPlayers(context, "players");
@@ -205,7 +209,7 @@ public final class KitsCommandRegistry {
         );
 
         kitNode.addChild(literal("commands")
-            .requires(require("kits.manage", 4))
+            .requires(require(MANAGE, 4))
             .then(argument("kit_name", StringArgumentType.word())
                 .suggests(Kits::suggestionProvider)
                 .then(literal("list")

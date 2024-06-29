@@ -6,6 +6,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import dev.jpcode.kits.access.ServerPlayerEntityAccess;
 
+import dev.jpcode.kits.platform.Services;
+
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
@@ -127,8 +129,12 @@ public class Kits {
         return KIT_MAP.entrySet()
             .stream()
             .filter(kitEntry ->
-                KitPerms.checkKit(source, kitEntry.getKey())
+                checkKit(source, kitEntry.getKey())
             );
+    }
+
+    public static boolean checkKit(CommandSourceStack source, String kitName) {
+        return Services.PLATFORM.canUseKit(source, kitName);
     }
 
     public static Stream<Map.Entry<String, Kit>> getClaimableKitsForPlayer(ServerPlayer player) {

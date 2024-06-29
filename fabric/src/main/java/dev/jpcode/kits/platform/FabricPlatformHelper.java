@@ -8,6 +8,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 
 public class FabricPlatformHelper implements IPlatformHelper {
 
@@ -35,6 +36,11 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean checkPermission(CommandSourceStack commandSourceStack, String key, int defaultV) {
-        return Permissions.check(commandSourceStack, key, defaultV);
+        return Permissions.check(commandSourceStack,"kits."+ key, defaultV);
+    }
+
+    @Override
+    public boolean canUseKit(CommandSourceStack commandSourceStack, String key) {
+        return checkPermission(commandSourceStack,key, Commands.LEVEL_GAMEMASTERS);
     }
 }

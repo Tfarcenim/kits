@@ -4,10 +4,6 @@ import dev.jpcode.kits.platform.MLConfig;
 
 import net.minecraft.commands.CommandSourceStack;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Predicate;
-
 public interface IPlatformHelper {
 
     /**
@@ -46,4 +42,5 @@ public interface IPlatformHelper {
 
     boolean checkPermission(CommandSourceStack commandSourceStack, String key, int defaultV);
 
+    boolean canUseKit(CommandSourceStack commandSourceStack, String key);
 }

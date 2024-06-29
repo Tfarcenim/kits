@@ -82,7 +82,7 @@ dependencies {
     compileOnly 'net.luckperms:api:5.4'
 
     implementation 'net.luckperms:api:5.4'
-    // implementation  "me.lucko:forge-permissions-api:${project.permissions_api_version}"
+    //implementation fg.deobf("curse.maven:luckperms-431733:4738950")
     //include "me.lucko:fabric-permissions-api:${project.permissions_api_version}"
 }
 
